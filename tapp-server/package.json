@@ -19,6 +19,7 @@
     "express-bearer-token": "^2.4.0",
     "express-oauth2-jwt-bearer": "^1.5.0",
     "helmet": "^7.0.0",
+    "jsonwebtoken": "^9.0.2",
     "mysql": "^2.18.1",
     "nodemon": "^2.0.22",
     "request": "^2.88.2",

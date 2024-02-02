@@ -22,7 +22,6 @@ var tappDb  = mysql.createPool({
 
 const port = process.env.PORT || 8080;
 //#endregion
-
 const app = express()
   .use(cors())
   .use(bodyParser.json())
@@ -31,8 +30,8 @@ const app = express()
   // .use(helmet()) // https://expressjs.com/en/advanced/best-practice-security.html#use-helmet
 
   const checkJwt = auth({
-    audience: 'tapp',
-    issuerBaseURL: `https://tapp.uk.auth0.com`,
+    audience: '4m7kLlTtQ4X9f097AC31oYY1JRUa',
+    issuerBaseURL: `https://localhost:9443/oauth2/token/.well-known/openid-configuration`,
     tokenSigningAlg: 'RS256'
   });
 
@@ -47,25 +46,20 @@ const swaggerDefinition = {
       email: "admin@tapp.dylanwarrell.com"
     }
   },
-  host: 'tapp-server.onrender.com',
+  host: 'http://localhost:8080',
   servers: [
-    {
-      url: "https://tappapi.dylanwarrell.com:443",
-      description: "Production server"
-    },
     {
       url: "http://localhost:8080",
       description: "Development server"
     }
-    
   ]
 };
 
 const swaggerOptions = {
   swaggerOptions: {
      oauth: {
-        clientId: "YtDD0pvA2wPHiquxaLI7JpPoJtOhGS4S",
-        clientSecret: process.env.TAPP_API_CLIENT_SECRET
+        clientId: "4m7kLlTtQ4X9f097AC31oYY1JRUa",
+        clientSecret: process.env.WSO2_CLIENT_SECRET
      },
   },
 };
