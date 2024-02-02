@@ -9,12 +9,10 @@ import { AuthLayoutComponent } from "./layouts/auth-layout/auth-layout.component
 import { CommonModule } from "@angular/common";
 import { NgbModule } from "@ng-bootstrap/ng-bootstrap";
 import { ToastrModule } from "ngx-toastr";
-import { AuthModule } from "@auth0/auth0-angular";
 import { environment as env } from "../environments/environment";
 import { AppRoutingModule } from "./app-routing.module";
 import { ComponentsModule } from "./components/components.module";
 import { HTTP_INTERCEPTORS } from "@angular/common/http";
-import { AuthHttpInterceptor } from "@auth0/auth0-angular";
 import { NgxUiLoaderModule, NgxUiLoaderConfig, SPINNER, POSITION, PB_DIRECTION, NgxUiLoaderRouterModule, NgxUiLoaderHttpModule } from "ngx-ui-loader";
 
 const ngxUiLoaderConfig: NgxUiLoaderConfig = {
@@ -51,44 +49,9 @@ const ngxUiLoaderConfig: NgxUiLoaderConfig = {
     NgxUiLoaderModule.forRoot(ngxUiLoaderConfig),
     NgxUiLoaderHttpModule.forRoot({ delay: 100, maxTime: 10000 }),
     NgxUiLoaderRouterModule.forRoot({ showForeground: false }),
-    AuthModule.forRoot({
-      domain: "tapp.uk.auth0.com",
-      clientId: "YtDD0pvA2wPHiquxaLI7JpPoJtOhGS4S",
-      authorizationParams: {
-        audience: "tapp",
-        scope: "openid profile",
-        redirect_uri: window.location.origin,
-      },
-      httpInterceptor: {
-        allowedList: [
-          {
-            // Match any request that starts 'https://tappapi.dylanwarrell.com:443/' (note the asterisk)
-            uri: "https://tappapi.dylanwarrell.com:443/*",
-            tokenOptions: {
-              authorizationParams: {
-                // The attached token should target this audience
-                audience: "tapp",
-                scope: "",
-              },
-            },
-          },
-          {
-            // Match any request that starts 'http://localhost:8080' (note the asterisk)
-            uri: "http://localhost:8080/*",
-            tokenOptions: {
-              authorizationParams: {
-                // The attached token should target this audience
-                audience: "tapp",
-                scope: "",
-              },
-            },
-          },
-        ],
-      },
-    }),
   ],
   declarations: [AppComponent, AdminLayoutComponent, AuthLayoutComponent],
-  providers: [HttpClient, { provide: HTTP_INTERCEPTORS, useClass: AuthHttpInterceptor, multi: true }],
+  providers: [HttpClient],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

@@ -1,7 +1,6 @@
 import { Component, Inject, OnInit } from "@angular/core";
 import { Router, RouterLink } from "@angular/router";
 import { Observable, filter, map } from "rxjs";
-import { AuthService } from "@auth0/auth0-angular";
 import { environment } from "src/environments/environment";
 
 declare interface RouteInfo {
@@ -53,20 +52,12 @@ export class SidebarComponent implements OnInit {
   public isCollapsed = true;
   public isAuthenticated$!: Observable<boolean>;
 
-  constructor(private router: Router, public auth: AuthService) {}
+  constructor(private router: Router) {}
 
   ngOnInit() {
     this.menuItems = ROUTES.filter((menuItem) => menuItem);
     this.router.events.subscribe((event) => {
       this.isCollapsed = true;
     });
-  }
-
-  async login() {
-    this.auth.loginWithRedirect();
-  }
-
-  async logout() {
-    this.auth.logout({ logoutParams: { returnTo: document.location.origin } });
   }
 }

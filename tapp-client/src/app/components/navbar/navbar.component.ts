@@ -3,7 +3,6 @@ import { ROUTES } from "../sidebar/sidebar.component";
 import { Location, LocationStrategy, PathLocationStrategy } from "@angular/common";
 import { Router } from "@angular/router";
 import { filter, map, Observable } from "rxjs";
-import { AuthService } from "@auth0/auth0-angular";
 
 @Component({
   selector: "app-navbar",
@@ -16,7 +15,7 @@ export class NavbarComponent implements OnInit {
   public focus;
   public listTitles: any[];
   public location: Location;
-  constructor(location: Location, private element: ElementRef, private router: Router, public auth: AuthService) {
+  constructor(location: Location, private element: ElementRef, private router: Router) {
     this.location = location;
   }
 
@@ -36,13 +35,5 @@ export class NavbarComponent implements OnInit {
       }
     }
     return "Dashboard";
-  }
-
-  async login() {
-    this.auth.loginWithRedirect();
-  }
-
-  async logout() {
-    this.auth.logout({ logoutParams: { returnTo: document.location.origin } });
   }
 }
