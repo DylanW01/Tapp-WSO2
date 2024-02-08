@@ -6,10 +6,10 @@ const swaggerJSDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 require('dotenv').config();
 const request = require("request");
-const { auth, requiredScopes } = require('express-oauth2-jwt-bearer');
 const axios = require('axios');
 const appVersion = require("../package.json").version;
-
+const jwt = require('jsonwebtoken');
+const jwksClient = require('jwks-rsa')
 
 //#region DB Setup - Create connection to database - Uses .env file for credentials
 var tappDb  = mysql.createPool({
@@ -26,14 +26,39 @@ const app = express()
   .use(cors())
   .use(bodyParser.json())
   .use(express.json())
-  //.use(bearerToken())
-  // .use(helmet()) // https://expressjs.com/en/advanced/best-practice-security.html#use-helmet
 
-  const checkJwt = auth({
-    audience: '4m7kLlTtQ4X9f097AC31oYY1JRUa',
-    issuerBaseURL: `https://localhost:9443/oauth2/token/.well-known/openid-configuration`,
-    tokenSigningAlg: 'RS256'
+  process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
+
+  const client = jwksClient({
+    jwksUri: 'https://localhost:9443/oauth2/jwks'  // replace with your jwksUri
   });
+  
+  function getKey(header, callback){
+    client.getSigningKey(header.kid, function(err, key) {
+      var signingKey = key.publicKey || key.rsaPublicKey;
+      callback(null, signingKey);
+    });
+  }
+
+  // Middleware for token verification
+  function verifyToken(req, res, next) {
+    // Check if authorization header is present
+    if (!req.headers.authorization) {
+      return res.status(403).send('Authorization header is missing');
+    }
+  
+    const token = req.headers.authorization.split(' ')[1];
+  
+    jwt.verify(token, getKey, { algorithms: ['RS256'] }, (err, decoded) => {
+      if (err) {
+        return res.sendStatus(401);
+      } else {
+        req.decoded = decoded;
+        next();
+      }
+    });
+  }
+  
 
 //#region Swagger setup
 const swaggerDefinition = {
@@ -58,7 +83,7 @@ const swaggerDefinition = {
 const swaggerOptions = {
   swaggerOptions: {
      oauth: {
-        clientId: "4m7kLlTtQ4X9f097AC31oYY1JRUa",
+        clientId: "jQmbznK8c9mg90UftWYzfOtUmuwa",
         clientSecret: process.env.WSO2_CLIENT_SECRET
      },
   },
@@ -76,21 +101,21 @@ app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerOptions
 //#endregion
 
   //#region Bowsers
-  app.get('/bowsers', checkJwt, function (req, res, next) {
-    tappDb.query(
-      'SELECT bowserId, lat, lon, size, createdOn, lastTopUp, status, capacityPercentage FROM bowsers WHERE deletedState=0',
-      (error, results) => {
-        if (error) {
-          console.log(error);
-          res.status(500).json({status: 'error'});
-        } else {
-          res.status(200).json(results);
-        }
-      }
-    );
+  app.get('/bowsers', verifyToken, function (req, res, next) {
+        tappDb.query(
+          'SELECT bowserId, lat, lon, size, createdOn, lastTopUp, status, capacityPercentage FROM bowsers WHERE deletedState=0',
+          (error, results) => {
+            if (error) {
+              console.log(error);
+              res.status(500).json({status: 'error'});
+            } else {
+              res.status(200).json(results);
+            }
+          }
+        );  
   });
 
-  app.get('/bowsers/:id', checkJwt, function (req, res, next) {
+  app.get('/bowsers/:id', verifyToken, function (req, res, next) {
     tappDb.query(
       'SELECT bowserId, lat, lon, size, createdOn, lastTopUp, status, capacityPercentage FROM bowsers WHERE bowserId=? AND deletedState=0',
       [req.params.id],
@@ -105,7 +130,7 @@ app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerOptions
     );
   });
 
-  app.post('/bowsers', checkJwt, (req, res, next) => {
+  app.post('/bowsers', verifyToken, (req, res, next) => {
     tappDb.query({
       sql: 'INSERT INTO bowsers (lat, lon, size, status, capacityPercentage) VALUES (?,?,?,?,?)',
       values: [req.body.lat, req.body.lon, req.body.size, req.body.status, req.body.capacity],},
@@ -140,7 +165,7 @@ app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerOptions
 
  // const checkBowserDeleteScopes = requiredScopes('delete:bowsers');
 
-  app.delete('/bowsers/:id', checkJwt, function (req, res, next) {
+  app.delete('/bowsers/:id', verifyToken, function (req, res, next) {
     tappDb.query(
       'UPDATE bowsers SET deletedState=1 WHERE bowserId=?',
       [req.params.id],
@@ -216,7 +241,7 @@ app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerOptions
   //#region Tickets
 
   // Get all tickets
-  app.get('/tickets', checkJwt, function (req, res, next) {
+  app.get('/tickets', verifyToken, function (req, res, next) {
     tappDb.query(
       'SELECT requestId, title, description, type, status, lat, lon, priority FROM tickets WHERE deletedState=0',
       (error, results) => {
@@ -231,7 +256,7 @@ app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerOptions
   });
 
   // Get ticket by ID
-  app.get('/tickets/:id', checkJwt, function (req, res, next) {
+  app.get('/tickets/:id', verifyToken, function (req, res, next) {
     tappDb.query(
       'SELECT requestId, title, description, type, status, lat, lon, priority FROM tickets WHERE requestId=? AND deletedState=0',
       [req.params.id],
@@ -247,7 +272,7 @@ app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerOptions
   });
 
   // Soft delete ticket by ID
-  app.delete('/tickets/:id', checkJwt, function (req, res, next) {
+  app.delete('/tickets/:id', verifyToken, function (req, res, next) {
     tappDb.query(
       'UPDATE tickets SET deletedState=1 WHERE requestId=?',
       [req.params.id],
@@ -286,7 +311,7 @@ app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerOptions
   });
 
   // Update ticket by ID
-  app.put('/tickets/:id', checkJwt, function (req, res, next) {
+  app.put('/tickets/:id', verifyToken, function (req, res, next) {
     tappDb.query({
       sql: 'UPDATE tickets SET title=?, description=?, type=?, status=?, lat=?, lon=?, priority=? WHERE requestId=?',
       values: [req.body.title, req.body.description, req.body.type, req.body.status, req.body.lat, req.body.lon, req.body.priority, req.params.id]},
@@ -324,7 +349,7 @@ app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerOptions
   });
 
   // Create new ticket
-  app.post('/tickets', checkJwt, (req, res, next) => {
+  app.post('/tickets', verifyToken, (req, res, next) => {
     tappDb.query({
       sql: 'INSERT INTO tickets (title, description, type, status, lat, lon, priority) VALUES (?,?,?,?,?,?,?)',
       values: [req.body.title, req.body.description, req.body.type, req.body.status, req.body.lat, req.body.lng, req.body.priority],},
@@ -363,139 +388,8 @@ app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerOptions
   });
   //#endregion
 
-  //#region User Accounts
-
-  // Create user
-  app.post('/users', checkJwt, (req, res, next) => {
-    // Get token for Auth0 Management API
-    const auth0ManagementApi = { method: 'POST',
-      url: 'https://tapp.uk.auth0.com/oauth/token',
-      headers: { 'content-type': 'application/json' },
-      body: '{"client_id":"5pYyzRbCvntlRjP9UwTTHG83sN6dy67W","client_secret":"'+process.env.TAPP_SERVER_AUTH0_API_CLIENT_SECRET+'","audience":"https://tapp.uk.auth0.com/api/v2/","grant_type":"client_credentials"}' };
-    
-    request(auth0ManagementApi, function (error, response, body) {
-      if (error) {
-        throw new Error(error)
-      };
-  
-    const parsedBody = JSON.parse(body);
-    const TOKEN = parsedBody.access_token
-
-    // Create user object
-    let data = JSON.stringify({
-      "email": req.body.email,
-      "blocked": req.body.blocked,
-      "email_verified": req.body.email_verified,
-      "given_name": req.body.given_name,
-      "family_name": req.body.family_name,
-      "name": req.body.name,
-      "picture": req.body.picture,
-      "connection": "Username-Password-Authentication",
-      "password": req.body.password,
-      "verify_email": req.body.verify_email,
-    });
-    
-    let config = {
-      method: 'post',
-      maxBodyLength: Infinity,
-      url: 'https://tapp.uk.auth0.com/api/v2/users',
-      headers: { 
-        'Content-Type': 'application/json', 
-        'Accept': 'application/json', 
-        'Authorization': 'Bearer ' + TOKEN
-      },
-      data : data
-    };
-
-    axios.request(config)
-    .then((response) => {
-      console.log(response);
-      res.status(200).json({status: 'ok'});
-    })
-    .catch((error) => {
-      console.log(error);
-      res.status(500).json({status: 'error'});
-    });
-    });
-  });
-
-  // Delete user
-  app.delete('/users/:id', checkJwt, function (req, res, next) {
-    const auth0ManagementApi = { method: 'POST',
-      url: 'https://tapp.uk.auth0.com/oauth/token',
-      headers: { 'content-type': 'application/json' },
-      body: '{"client_id":"5pYyzRbCvntlRjP9UwTTHG83sN6dy67W","client_secret":"'+process.env.TAPP_SERVER_AUTH0_API_CLIENT_SECRET+'","audience":"https://tapp.uk.auth0.com/api/v2/","grant_type":"client_credentials"}' };
-    
-    request(auth0ManagementApi, function (error, response, body) {
-      if (error) {
-        throw new Error(error)
-      };
-  
-    const parsedBody = JSON.parse(body);
-    const TOKEN = parsedBody.access_token
-
-    let config = {
-      method: 'delete',
-      maxBodyLength: Infinity,
-      url: 'https://tapp.uk.auth0.com/api/v2/users/'+[req.params.id],
-      headers: { 
-        'Authorization': 'Bearer ' + TOKEN
-      }
-    };
-
-    axios.request(config)
-    .then((response) => {
-      console.log(response.data);
-      res.status(200).json({status: 'ok'});
-    })
-    .catch((error) => {
-      console.log(error);
-      res.status(500).json({status: 'error'});
-    });
-    });
-  });
-
-  // Get admin users
-  app.get('/users/role/admin', checkJwt, function (req, res, next) {
-    // Get token for Auth0 Management API
-    const auth0ManagementApi = { method: 'POST',
-      url: 'https://tapp.uk.auth0.com/oauth/token',
-      headers: { 'content-type': 'application/json' },
-      body: '{"client_id":"5pYyzRbCvntlRjP9UwTTHG83sN6dy67W","client_secret":"'+process.env.TAPP_SERVER_AUTH0_API_CLIENT_SECRET+'","audience":"https://tapp.uk.auth0.com/api/v2/","grant_type":"client_credentials"}' };
-    
-    request(auth0ManagementApi, function (error, response, body) {
-      if (error) {
-        throw new Error(error)
-      };
-  
-    const parsedBody = JSON.parse(body);
-    const TOKEN = parsedBody.access_token
-
-    let config = {
-      method: 'get',
-      maxBodyLength: Infinity,
-      url: 'https://tapp.uk.auth0.com/api/v2/roles/rol_nWQlv99CkRtuf32M/users',
-      headers: { 
-        'Accept': 'application/json', 
-        'Authorization': 'Bearer ' + TOKEN
-      }
-    };
-
-    axios.request(config)
-    .then((response) => {
-      console.log(response.data);
-      res.status(200).json(response.data);
-    })
-    .catch((error) => {
-      console.log(error);
-      res.status(500).json({status: 'error'});
-    });
-    });
-  });
-  //#endregion
-
   //#region Stats
-  app.get('/bowserticketstats', checkJwt, async function (req, res, next) {
+  app.get('/bowserticketstats', verifyToken, async function (req, res, next) {
     try {
       const bowsersCountPromise = getCount('SELECT COUNT(*) FROM bowsers WHERE deletedState=0');
       const activeBowsersCountPromise = getCount('SELECT COUNT(*) FROM bowsers WHERE status = "Active"');
@@ -538,7 +432,7 @@ app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerOptions
     });
   }
   
-  app.get('/bowserscount', checkJwt, function (req, res, next) {
+  app.get('/bowserscount', verifyToken, function (req, res, next) {
     tappDb.query(
       'SELECT COUNT(*) FROM bowsers WHERE deletedState=0',
       (error, results) => {
@@ -552,7 +446,7 @@ app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerOptions
     );
   });
 
-  app.get('/activebowserscount', checkJwt, function (req, res, next) {
+  app.get('/activebowserscount', verifyToken, function (req, res, next) {
     tappDb.query(
       'SELECT COUNT(*) FROM bowsers WHERE status = "Active"',
       (error, results) => {
@@ -566,7 +460,7 @@ app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerOptions
     );
   });
 
-  app.get('/pendingticketcount', checkJwt, function (req, res, next) {
+  app.get('/pendingticketcount', verifyToken, function (req, res, next) {
     tappDb.query(
       'SELECT COUNT(*) FROM tickets WHERE status = "Pending"',
       (error, results) => {
@@ -580,7 +474,7 @@ app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerOptions
     );
   });
 
-  app.get('/activeticketcount', checkJwt, function (req, res, next) {
+  app.get('/activeticketcount', verifyToken, function (req, res, next) {
     tappDb.query(
       'SELECT COUNT(*) FROM tickets WHERE status = "In Progress"',
       (error, results) => {
@@ -594,7 +488,7 @@ app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerOptions
     );
   });
 
-  app.get('/bowserdowncount', checkJwt, function (req, res, next) {
+  app.get('/bowserdowncount', verifyToken, function (req, res, next) {
     tappDb.query(
       'SELECT COUNT(*) FROM bowsers WHERE status = "Problematic" OR status = "Down" OR status = "Out of Service" OR status = "Maintenance" OR status = "Needs Attention"',
       (error, results) => {

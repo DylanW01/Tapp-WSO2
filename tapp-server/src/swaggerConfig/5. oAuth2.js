@@ -8,5 +8,5 @@
  *         implicit:
  *           authorizationUrl: https://localhost:9443/oauth2/authorize
  *           scopes:
- *             read: Grants read access
+ *             read: openid profile
  * */
