@@ -21,9 +21,6 @@ export class AppComponent {
 
       /*...*/
     });
-    const token = this.oidcSecurityService.getAccessToken().subscribe((token) => {
-      console.log("Token: ", token);
-    });
   }
 
   login() {

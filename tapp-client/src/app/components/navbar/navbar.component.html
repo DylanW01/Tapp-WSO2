@@ -23,8 +23,8 @@
               <img alt="Image placeholder" src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541" />
             </span>
             <div class="media-body ml-2 d-none d-lg-block">
-              <span class="mb-0 text-sm font-weight-bold"></span>
-              <span class="mb-0 text-sm font-weight-bold">Not Logged In</span>
+              <span *ngIf="userData$ as user" class="mb-0 text-sm font-weight-bold">{{ user.given_name }} {{ user.family_name }}</span>
+              <span *ngIf="!userData$" class="mb-0 text-sm font-weight-bold">Not Logged In</span>
             </div>
           </div>
         </a>

@@ -11,17 +11,19 @@ import { OidcSecurityService } from "angular-auth-oidc-client";
   styleUrls: ["./navbar.component.scss"],
 })
 export class NavbarComponent implements OnInit {
-  public name$!: Observable<string>;
-  public isAuthenticated$!: Observable<boolean>;
   public focus;
   public listTitles: any[];
   public location: Location;
+  userData$: any;
   constructor(location: Location, private element: ElementRef, private router: Router, public oidcSecurityService: OidcSecurityService) {
     this.location = location;
   }
 
   public ngOnInit(): void {
     this.listTitles = ROUTES.filter((listTitle) => listTitle);
+    this.oidcSecurityService.getUserData().subscribe((userData) => {
+      this.userData$ = userData;
+    });
   }
 
   getTitle() {
