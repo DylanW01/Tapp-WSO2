@@ -19,8 +19,8 @@
         <a class="nav-link pr-0" role="button" ngbDropdownToggle>
           <div class="media align-items-center">
             <span class="avatar avatar-sm rounded-circle">
-              <img alt="Profile Image" src="" />
-              <img alt="Image placeholder" src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541" />
+              <img *ngIf="userData$ | async as user" alt="Profile Image" src="{{ user.picture }}" />
+              <img *ngIf="(isAuthenticated$ | async) == false" alt="Image placeholder" src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541" />
             </span>
             <div class="media-body ml-2 d-none d-lg-block">
               <span *ngIf="userData$ | async as user" class="mb-0 text-sm font-weight-bold">{{ user.given_name }} {{ user.family_name }}</span>
