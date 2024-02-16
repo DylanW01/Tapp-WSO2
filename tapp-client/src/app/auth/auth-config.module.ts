@@ -5,7 +5,7 @@ import { AuthModule } from "angular-auth-oidc-client";
   imports: [
     AuthModule.forRoot({
       config: {
-        authority: "https://localhost:9443/oauth2/authorize",
+        authority: "https://localhost:9443/oauth2/token",
         redirectUrl: "https://localhost:4200/",
         postLogoutRedirectUri: window.location.origin,
         clientId: "jQmbznK8c9mg90UftWYzfOtUmuwa",

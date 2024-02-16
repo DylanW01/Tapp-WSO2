@@ -19,7 +19,7 @@
         <a class="nav-link pr-0" role="button" ngbDropdownToggle>
           <div class="media align-items-center">
             <span class="avatar avatar-sm rounded-circle">
-              <img *ngIf="userData$ | async as user" alt="Profile Image" src="{{ user.picture }}" />
+              <img *ngIf="userData$ | async as user" alt="Profile Image" src="{{ user.profile }}" />
               <img *ngIf="(isAuthenticated$ | async) == false" alt="Image placeholder" src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541" />
             </span>
             <div class="media-body ml-2 d-none d-lg-block">
@@ -51,7 +51,7 @@
           <div class="dropdown-divider"></div>
           <a *ngIf="(isAuthenticated$ | async) == true" class="dropdown-item">
             <i class="ni ni-user-run"></i>
-            <span (click)="logout()">Logout</span>
+            <a href="https://localhost:9443/oidc/logout" style="color: black">Logout</a>
           </a>
           <a *ngIf="(isAuthenticated$ | async) == false" class="dropdown-item">
             <i class="fa-solid fa-key"></i>
