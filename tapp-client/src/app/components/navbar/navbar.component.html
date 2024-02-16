@@ -23,8 +23,8 @@
               <img alt="Image placeholder" src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541" />
             </span>
             <div class="media-body ml-2 d-none d-lg-block">
-              <span *ngIf="userData$ as user" class="mb-0 text-sm font-weight-bold">{{ user.given_name }} {{ user.family_name }}</span>
-              <span *ngIf="!userData$" class="mb-0 text-sm font-weight-bold">Not Logged In</span>
+              <span *ngIf="userData$ | async as user" class="mb-0 text-sm font-weight-bold">{{ user.given_name }} {{ user.family_name }}</span>
+              <span *ngIf="(isAuthenticated$ | async) == false" class="mb-0 text-sm font-weight-bold">Not Logged In</span>
             </div>
           </div>
         </a>
@@ -32,7 +32,7 @@
           <div class="dropdown-header noti-title">
             <h6 class="text-overflow m-0">Welcome!</h6>
           </div>
-          <a routerLinkActive="active" [routerLink]="['/user-profile']" class="dropdown-item">
+          <a href="https://localhost:9443/myaccount" target="_blank" class="dropdown-item">
             <i class="ni ni-single-02"></i>
             <span>My profile</span>
           </a>
@@ -49,11 +49,11 @@
             <span>Support</span>
           </a>
           <div class="dropdown-divider"></div>
-          <a class="dropdown-item">
+          <a *ngIf="(isAuthenticated$ | async) == true" class="dropdown-item">
             <i class="ni ni-user-run"></i>
             <span (click)="logout()">Logout</span>
           </a>
-          <a class="dropdown-item">
+          <a *ngIf="(isAuthenticated$ | async) == false" class="dropdown-item">
             <i class="fa-solid fa-key"></i>
             <span (click)="login()">Login</span>
           </a>

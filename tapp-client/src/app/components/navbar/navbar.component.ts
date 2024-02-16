@@ -2,7 +2,7 @@ import { Component, OnInit, ElementRef, Inject } from "@angular/core";
 import { ROUTES } from "../sidebar/sidebar.component";
 import { Location, LocationStrategy, PathLocationStrategy } from "@angular/common";
 import { Router } from "@angular/router";
-import { filter, map, Observable } from "rxjs";
+import { filter, map, Observable, of } from "rxjs";
 import { OidcSecurityService } from "angular-auth-oidc-client";
 
 @Component({
@@ -14,15 +14,22 @@ export class NavbarComponent implements OnInit {
   public focus;
   public listTitles: any[];
   public location: Location;
-  userData$: any;
+  userData$: Observable<any>;
+  isAuthenticated$: Observable<boolean>;
   constructor(location: Location, private element: ElementRef, private router: Router, public oidcSecurityService: OidcSecurityService) {
     this.location = location;
   }
 
   public ngOnInit(): void {
     this.listTitles = ROUTES.filter((listTitle) => listTitle);
-    this.oidcSecurityService.getUserData().subscribe((userData) => {
-      this.userData$ = userData;
+    this.oidcSecurityService.isAuthenticated().subscribe((isAuthenticated) => {
+      this.isAuthenticated$ = of(isAuthenticated);
+      if (isAuthenticated) {
+        this.oidcSecurityService.getUserData().subscribe((userData) => {
+          this.userData$ = of(userData);
+          console.log(userData);
+        });
+      }
     });
   }
 
