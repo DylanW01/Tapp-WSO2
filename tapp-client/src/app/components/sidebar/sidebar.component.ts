@@ -1,5 +1,6 @@
 import { Component, Inject, OnInit } from "@angular/core";
 import { Router, RouterLink } from "@angular/router";
+import { OidcSecurityService } from "angular-auth-oidc-client";
 import { Observable, filter, map } from "rxjs";
 import { environment } from "src/environments/environment";
 
@@ -52,12 +53,20 @@ export class SidebarComponent implements OnInit {
   public isCollapsed = true;
   public isAuthenticated$!: Observable<boolean>;
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, public oidcSecurityService: OidcSecurityService) {}
 
   ngOnInit() {
     this.menuItems = ROUTES.filter((menuItem) => menuItem);
     this.router.events.subscribe((event) => {
       this.isCollapsed = true;
     });
+  }
+
+  login() {
+    this.oidcSecurityService.authorize();
+  }
+
+  logout() {
+    this.oidcSecurityService.logoff().subscribe((result) => console.log(result));
   }
 }

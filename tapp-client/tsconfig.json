@@ -1,6 +1,8 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
     "baseUrl": "./",
     "outDir": "./dist/out-tsc",
     "sourceMap": true,
@@ -12,7 +14,7 @@
     "target": "es2020",
     "module": "es2020",
     "lib": ["es2020", "dom"],
-    "types": ["node"]
+    "skipLibCheck": true
   },
   "angularCompilerOptions": {
     "strictTemplates": true

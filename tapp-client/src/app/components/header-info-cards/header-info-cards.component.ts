@@ -39,7 +39,6 @@ export class HeaderInfoCardsComponent implements OnInit {
         // Clear the timeout if the request succeeds within 4 seconds
         clearTimeout(timeoutId);
 
-        console.log(response);
         this.totalBowsers = response.bowsersCount;
         this.activeBowsers = response.activeBowsersCount;
         this.pendingTickets = response.pendingTicketCount;
@@ -75,7 +74,6 @@ export class HeaderInfoCardsComponent implements OnInit {
 
   getStats() {
     this.server.getStats().then((response: any) => {
-      console.log(response);
       this.totalBowsers = response.bowsersCount;
       this.activeBowsers = response.activeBowsersCount;
       this.pendingTickets = response.pendingTicketCount;

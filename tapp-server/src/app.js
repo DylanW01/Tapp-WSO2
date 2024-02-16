@@ -389,7 +389,7 @@ app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerOptions
   //#endregion
 
   //#region Stats
-  app.get('/bowserticketstats', verifyToken, async function (req, res, next) {
+  app.get('/bowserticketstats', async function (req, res, next) {
     try {
       const bowsersCountPromise = getCount('SELECT COUNT(*) FROM bowsers WHERE deletedState=0');
       const activeBowsersCountPromise = getCount('SELECT COUNT(*) FROM bowsers WHERE status = "Active"');

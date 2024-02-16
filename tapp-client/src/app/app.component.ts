@@ -1,5 +1,6 @@
 import { Component, Inject, OnInit } from "@angular/core";
 import { RouterModule, Router } from "@angular/router";
+import { LoginResponse, OidcSecurityService } from "angular-auth-oidc-client";
 import { NgxUiLoaderService } from "ngx-ui-loader";
 import { filter, map, Observable } from "rxjs";
 
@@ -12,11 +13,24 @@ export class AppComponent {
   title = "Tapp";
   public isAuthenticated$!: Observable<boolean>;
 
-  constructor(private _router: Router) {}
+  constructor(public oidcSecurityService: OidcSecurityService, private _router: Router) {}
 
-  public ngOnInit(): void {}
+  ngOnInit() {
+    this.oidcSecurityService.checkAuth().subscribe((loginResponse: LoginResponse) => {
+      const { isAuthenticated, userData, accessToken, idToken, configId } = loginResponse;
 
-  public async signIn(): Promise<void> {}
+      /*...*/
+    });
+    const token = this.oidcSecurityService.getAccessToken().subscribe((token) => {
+      console.log("Token: ", token);
+    });
+  }
 
-  public async signOut(): Promise<void> {}
+  login() {
+    this.oidcSecurityService.authorize();
+  }
+
+  logout() {
+    this.oidcSecurityService.logoff().subscribe((result) => console.log(result));
+  }
 }
