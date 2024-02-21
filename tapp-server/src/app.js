@@ -83,7 +83,7 @@ const swaggerDefinition = {
 const swaggerOptions = {
   swaggerOptions: {
      oauth: {
-        clientId: "jQmbznK8c9mg90UftWYzfOtUmuwa",
+        clientId: "9KebxbMWHHDWYk9K22SoCgtuwf4a",
         clientSecret: process.env.WSO2_CLIENT_SECRET
      },
   },

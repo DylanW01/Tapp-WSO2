@@ -5,8 +5,7 @@
  *     Tapp:
  *       type: oauth2
  *       flows:
- *         implicit:
+ *         authorizationCode:
  *           authorizationUrl: https://localhost:9443/oauth2/authorize
- *           scopes:
- *             read: openid profile
+ *           tokenUrl: https://localhost:9443/oauth2/token
  * */
