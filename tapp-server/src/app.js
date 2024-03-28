@@ -30,7 +30,7 @@ const app = express()
   process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
 
   const client = jwksClient({
-    jwksUri: 'https://localhost:9443/oauth2/jwks'  // replace with your jwksUri
+    jwksUri: 'https://localhost:9443/oauth2/jwks'
   });
   
   function getKey(header, callback){
