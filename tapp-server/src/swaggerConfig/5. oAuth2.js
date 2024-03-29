@@ -5,7 +5,11 @@
  *     Tapp:
  *       type: oauth2
  *       flows:
- *         authorizationCode:
+ *         implicit:
  *           authorizationUrl: https://localhost:9443/oauth2/authorize
- *           tokenUrl: https://localhost:9443/oauth2/token
+ *           scopes:
+ *             read_tickets: 'Grants read access to tickets'
+ *             read_bowsers: 'Grants read access to browsers'
+ *             update_bowsers: 'Grants update access to browsers'
+ *             update_tickets: 'Grants update access to tickets'
  * */
